@@ -1,31 +1,79 @@
-import {FormEvent, useState} from "react";
+import {useState} from "react";
 
 import PersonalInfoForm from "./components/PersonalInfoForm";
 import SelectPlanForm from "./components/SelectPlanForm";
 import {useMultistepForm} from "./useMultistepForm";
 
+const steps = [1, 2, 3, 4];
+
 type FormData = {
   name: string;
   email: string;
   phone: string;
+  plan: string;
+  planPrice: number;
+  monthly: boolean;
+};
+
+type Errors = {
+  [key: string]: string;
 };
 
 const INITIAL_DATA: FormData = {
   name: "",
   email: "",
   phone: "",
+  plan: "Arcade",
+  planPrice: 9,
+  monthly: true,
 };
 
 function App() {
   const [data, setData] = useState(INITIAL_DATA);
+  const [errors, setErrors] = useState<Errors>({});
+
+  function isValidEmail(email: string): boolean {
+    return /\S+@\S+\.\S+/.test(email);
+  }
+  function updateFields(fields: Partial<FormData>) {
+    setData((prev) => {
+      return {...prev, ...fields};
+    });
+  }
+
   const {currentStepIndex, step, isFirstStep, isLastStep, back, next} = useMultistepForm([
-    <PersonalInfoForm {...data} />,
-    <SelectPlanForm />,
+    <PersonalInfoForm {...data} errors={errors} updateFields={updateFields} />,
+    <SelectPlanForm {...data} errors={errors} updateFields={updateFields} />,
   ]);
 
-  function onSubmit(e: FormEvent) {
+  function onSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
-    next();
+
+    // Perform validation
+    const newErrors: Errors = {};
+
+    if (!data.name) {
+      newErrors.name = "Name is required.";
+    }
+    if (!data.email) {
+      newErrors.email = "Email is required.";
+    } else if (!isValidEmail(data.email)) {
+      newErrors.email = "Invalid email address.";
+    }
+    if (!data.phone) {
+      newErrors.phone = "Phone is required.";
+    }
+    if (!data.plan) {
+      newErrors.plan = "Please select a plan.";
+    }
+
+    // Set the errors state
+    setErrors(newErrors);
+
+    // Check if there are any errors
+    if (Object.keys(newErrors).length === 0) {
+      next();
+    }
   }
 
   return (
@@ -36,50 +84,21 @@ function App() {
       <aside className="h-[170px] w-screen bg-[url('./assets/images/bg-sidebar-mobile.svg')] bg-cover">
         <div className="flex justify-center items-center h-full relative">
           <ul className="flex justify-evenly flex-row w-2/3 px-8 absolute top-10">
-            <li>
-              <button
-                className={`${
-                  currentStepIndex + 1 === 1
-                    ? "bg-Light-blue text-Marine-blue border-none"
-                    : "text-White"
-                } hover:border-2 cursor-pointer rounded-full border font-bold w-8 h-8 flex justify-center items-center  active:bg-Light-blue active:text-Marine-blue focus-visible:outline-none focus:border-2`}
-              >
-                1
-              </button>
-            </li>
-            <li>
-              <button
-                className={`${
-                  currentStepIndex + 1 === 2
-                    ? "bg-Light-blue text-Marine-blue border-none"
-                    : "text-White"
-                } hover:border-2 cursor-pointer rounded-full border font-bold w-8 h-8 flex justify-center items-center active:bg-Light-blue active:text-Marine-blue focus-visible:outline-none focus:border-2`}
-              >
-                2
-              </button>
-            </li>
-            <li>
-              <button
-                className={`${
-                  currentStepIndex + 1 === 3
-                    ? "bg-Light-blue text-Marine-blue border-none"
-                    : "text-White"
-                } hover:border-2 cursor-pointer rounded-full border font-bold w-8 h-8 flex justify-center items-center active:bg-Light-blue active:text-Marine-blue focus-visible:outline-none focus:border-2`}
-              >
-                3
-              </button>
-            </li>
-            <li>
-              <button
-                className={`${
-                  currentStepIndex + 1 === 4
-                    ? "bg-Light-blue text-Marine-blue border-none"
-                    : "text-White"
-                } hover:border-2 cursor-pointer rounded-full border font-bold w-8 h-8 flex justify-center items-center  active:bg-Light-blue active:text-Marine-blue focus-visible:outline-none focus:border-2`}
-              >
-                4
-              </button>
-            </li>
+            {steps.map((step) => {
+              return (
+                <li key={step}>
+                  <div
+                    className={`${
+                      currentStepIndex + 1 === step
+                        ? "bg-Light-blue text-Marine-blue border-none"
+                        : "text-White"
+                    }  rounded-full border font-bold w-8 h-8 flex justify-center items-center  active:bg-Light-blue active:text-Marine-blue focus-visible:outline-none `}
+                  >
+                    {step}
+                  </div>
+                </li>
+              );
+            })}
           </ul>
         </div>
       </aside>
@@ -102,7 +121,7 @@ function App() {
           </button>
         )}
         <button
-          className="px-4 py-2 font-medium rounded bg-Marine-blue text-White hover:bg-Purplish-blue focus:bg-Purplish-blue focus-visible:outline-none"
+          className="px-4 py-2 font-medium rounded-md bg-Marine-blue text-White hover:bg-Purplish-blue focus:bg-Purplish-blue focus-visible:outline-none"
           type="submit"
         >
           {isLastStep ? "Confirm" : "Next Step"}
