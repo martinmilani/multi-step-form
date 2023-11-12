@@ -2,10 +2,15 @@ import {ReactElement, useState} from "react";
 
 export function useMultistepForm(steps: ReactElement[]) {
   const [currentStepIndex, setCurrentStepIndex] = useState(0);
+  const [isSubmited, setIsSubmited] = useState(false);
 
   function next() {
     setCurrentStepIndex((i) => {
-      if (i >= steps.length - 1) return i;
+      if (i >= steps.length - 1) {
+        setIsSubmited(true);
+
+        return i;
+      }
 
       return i + 1;
     });
@@ -29,6 +34,7 @@ export function useMultistepForm(steps: ReactElement[]) {
     steps,
     isFirstStep: currentStepIndex === 0,
     isLastStep: currentStepIndex === steps.length - 1,
+    isSubmited,
     goTo,
     next,
     back,
