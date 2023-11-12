@@ -111,7 +111,7 @@ function App() {
       <nav className="h-[170px] w-screen bg-[url('./assets/images/bg-sidebar-mobile.svg')] bg-cover lg:hidden">
         <div className="flex justify-center items-center h-full relative">
           <ul className="flex justify-evenly flex-row w-2/3 px-8 absolute top-10">
-            {stepList.map((step, index) => {
+            {stepList.map((_step, index) => {
               return (
                 <li key={index}>
                   <div
